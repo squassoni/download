@@ -7,17 +7,43 @@ mkdir -p ~/tools/{nodejs,java,bin}
 # -----------------------------
 # Python + pip
 # -----------------------------
-echo "🐍 Instalando Python 3.10..."
-# Se já estiver instalado no SUSE, pule essa parte
+echo "🐍 Verificando Python 3..."
 if ! command -v python3 &>/dev/null; then
-  echo "⚠️ Python3 não encontrado. Instale manualmente o binário."
+    echo "⚠️ Python3 não encontrado. Instale manualmente o binário."
 else
-  echo "✅ Python3 já instalado."
+    echo "✅ Python3 encontrado."
 fi
 
-echo "📦 Atualizando pip e instalando Ansible 2.17.0..."
-python3 -m pip install --upgrade pip
+echo "📥 Instalando pip via get-pip.py..."
+curl -O https://bootstrap.pypa.io/get-pip.py
+python3 get-pip.py --user
+export PATH=$HOME/.local/bin:$PATH
+grep -qxF 'export PATH=$HOME/.local/bin:$PATH' ~/.bashrc || echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
+
+echo "📦 Instalando Ansible Core 2.17.0..."
 python3 -m pip install --user ansible-core==2.17.0
+
+# -----------------------------
+# jq
+# -----------------------------
+echo "📥 Instalando jq 1.6..."
+curl -L -o ~/tools/bin/jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+chmod +x ~/tools/bin/jq
+
+# -----------------------------
+# dos2unix
+# -----------------------------
+echo "📥 Instalando dos2unix 7.4.2..."
+curl -L -o ~/tools/bin/dos2unix https://github.com/dos2unix/dos2unix/releases/download/v7.4.2/dos2unix-7.4.2-linux-x86_64
+chmod +x ~/tools/bin/dos2unix
+
+# -----------------------------
+# zip
+# -----------------------------
+echo "📥 Instalando zip 3.0..."
+curl -L -o ~/tools/bin/zip https://downloads.sourceforge.net/infozip/zip30.tar.gz
+tar -xzvf ~/tools/bin/zip -C ~/tools/bin || true
+chmod +x ~/tools/bin/zip
 
 # -----------------------------
 # MinIO client
