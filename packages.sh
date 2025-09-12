@@ -1,92 +1,46 @@
 #!/bin/bash
+
 set -e
 
-TOOLS_DIR=$HOME/tools
-BIN_DIR=$TOOLS_DIR/bin
-mkdir -p $BIN_DIR
+echo "🔧 Iniciando instalação de ferramentas..."
 
-echo "==== Preparando pip para Python 3.9 ===="
-curl -sS https://bootstrap.pypa.io/pip/3.9/get-pip.py -o get-pip.py
-python3 get-pip.py --user || true
-rm get-pip.py
-export PATH=$HOME/.local/bin:$PATH
-echo 'export PATH=$HOME/.local/bin:$PATH' >> ~/.bashrc
+# Diretórios de destino
+mkdir -p ~/tools/nodejs
+mkdir -p ~/tools/java-17
 
-echo "==== Instalando Python 3.10.12 localmente ===="
-cd $HOME
-curl -O https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz
-tar -xzf Python-3.10.12.tgz
-cd Python-3.10.12
-./configure --prefix=$TOOLS_DIR/python310 --enable-optimizations
-make -j$(nproc)
-make install
-cd ..
-rm -rf Python-3.10.12 Python-3.10.12.tgz
+# 1. Instalar mc
+echo "📦 Instalando mc..."
+curl -k -o mc https://artifactory.prz.ics.eu-west-1.aws.gts/artifactory/gdp_nextgen_devops_ics/MINIO/mc
+chmod 755 mc
+sudo mv mc /usr/local/bin/
 
-echo 'export PATH=$HOME/tools/python310/bin:$PATH' >> ~/.bashrc
-export PATH=$HOME/tools/python310/bin:$PATH
+# 2. Instalar cf CLI
+echo "📦 Instalando cf CLI..."
+curl -L https://artifactory.prz.ics.eu-west-1.aws.gts/artifactory/gdp_nextgen_devops_ics/cloudfoundry/cf8-cli_8.0.0_linux_x86-64.tgz | tar -zx
+sudo mv cf8 /usr/local/bin/
+sudo mv cf /usr/local/bin/
 
-echo "==== Instalando pip no Python 3.10 ===="
-python3.10 -m ensurepip --upgrade
-python3.10 -m pip install --upgrade pip
+# 3. Instalar Node.js e npm
+echo "📦 Instalando Node.js..."
+curl -L https://artifactory.prz.ics.eu-west-1.aws.gts/artifactory/gdp_nextgen_devops_ics/node-v18.14.0-linux-x64.tar.gz | tar -zx -C ~/tools/nodejs
+echo 'export PATH=$PATH:~/tools/nodejs/node-v18.14.0-linux-x64/bin' >> ~/.bashrc
 
-echo "==== Instalando dos2unix ===="
-curl -L https://waterlan.home.xs4all.nl/dos2unix/dos2unix-7.4.2.tar.gz -o dos2unix.tar.gz
-tar -xzf dos2unix.tar.gz
-cd dos2unix-7.4.2
-make
-cp dos2unix $BIN_DIR/
-cd ..
-rm -rf dos2unix-7.4.2 dos2unix.tar.gz
+# 4. Instalar Java 17
+echo "📦 Instalando Java 17..."
+curl -k -L https://artifactory.prz.ics.eu-west-1.aws.gts/artifactory/gdp_nextgen_devops_ics/bin/jdk-17.0.6_linux-x64_bin.tar.gz | tar -zx -C ~/tools/java-17
+echo 'export JAVA_HOME=~/tools/java-17/jdk-17.0.6' >> ~/.bashrc
+echo 'export PATH=$PATH:$JAVA_HOME/bin' >> ~/.bashrc
 
-echo "==== Instalando zip ===="
-curl -L https://downloads.sourceforge.net/infozip/zip30.tar.gz -o zip.tar.gz
-tar -xzf zip.tar.gz
-cd zip30
-make -f unix/Makefile generic_gcc
-cp zip $BIN_DIR/
-cd ..
-rm -rf zip30 zip.tar.gz
-
-echo "==== Instalando jq ===="
-curl -L https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -o $BIN_DIR/jq
-chmod +x $BIN_DIR/jq
-
-echo "==== Instalando mc (MinIO Client) ===="
-curl -L https://dl.min.io/client/mc/release/linux-amd64/mc -o $BIN_DIR/mc
-chmod +x $BIN_DIR/mc
-
-echo "==== Instalando Cloud Foundry CLI (cf) ===="
-curl -L https://packages.cloudfoundry.org/stable?release=linux64-binary&source=github -o cf-cli.tgz
-tar -xzf cf-cli.tgz
-mv cf8 cf $BIN_DIR/
-rm -rf cf-cli.tgz
-
-echo "==== Instalando Node.js 18.14.0 + npm ===="
-curl -L https://nodejs.org/dist/v18.14.0/node-v18.14.0-linux-x64.tar.gz -o node.tar.gz
-tar -xzf node.tar.gz -C $TOOLS_DIR
-echo "export PATH=\$PATH:$TOOLS_DIR/node-v18.14.0-linux-x64/bin" >> ~/.bashrc
-rm node.tar.gz
-
-echo "==== Instalando Java 17 (17.0.6) ===="
-curl -L https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.tar.gz -o java.tar.gz
-mkdir -p $TOOLS_DIR/java-17
-tar -xzf java.tar.gz -C $TOOLS_DIR/java-17 --strip-components=1
-echo "export JAVA_HOME=$TOOLS_DIR/java-17" >> ~/.bashrc
-echo "export PATH=\$PATH:\$JAVA_HOME/bin" >> ~/.bashrc
-rm java.tar.gz
-
-echo "==== Instalando Ansible (via pip no Python 3.10) ===="
-python3.10 -m pip install --user ansible-core==2.17.0
-
-echo "==== Instalando kubectl v1.32.1 ===="
+# 5. Instalar kubectl
+echo "📦 Instalando kubectl..."
 curl -LO "https://dl.k8s.io/release/v1.32.1/bin/linux/amd64/kubectl"
 chmod +x kubectl
-mv kubectl $BIN_DIR/
+sudo mv kubectl /usr/local/bin/
 
-echo "==== Instalando yq ===="
-curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o $BIN_DIR/yq
-chmod +x $BIN_DIR/yq
+# 6. Instalar yq
+echo "📦 Instalando yq..."
+curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -o yq
+chmod +x yq
+sudo mv yq /usr/local/bin/
 
-echo "==== Finalizado! ===="
-echo "Reinicie a sessão ou rode: source ~/.bashrc"
+echo "✅ Instalação concluída. Execute 'source ~/.bashrc' para aplicar as variáveis de ambiente."
