@@ -1,0 +1,37 @@
+---
+- name: Setup HackerBoard credentials
+  hosts: localhost
+  become: yes
+  vars:
+    credentials_path: "{{ lookup('env', 'HACKERBOARD_DIR') }}/credentials.ini"
+    access_key_value: "{{ lookup('env', 'HACKERBOARD_ACCESS_KEY') }}"
+
+  tasks:
+    - name: Ensure hackercompany group exists
+      group:
+        name: hackercompany
+        state: present
+
+    - name: Ensure hackerboard user exists
+      user:
+        name: hackerboard
+        group: hackercompany
+        state: present
+        create_home: yes
+
+    - name: Create credentials.ini from template
+      template:
+        src: credentials.ini.j2
+        dest: "{{ credentials_path }}"
+        owner: hackerboard
+        group: hackercompany
+        mode: '0640'
+      vars:
+        access_key: "{{ access_key_value }}"
+
+    - name: Ensure correct permissions
+      file:
+        path: "{{ credentials_path }}"
+        owner: hackerboard
+        group: hackercompany
+        mode: '0640'
